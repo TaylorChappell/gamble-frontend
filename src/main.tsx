@@ -23,6 +23,7 @@ import {
   AlertCircle,
   X,
   ExternalLink,
+  Menu,
 } from "lucide-react";
 import {
   api,
@@ -46,6 +47,9 @@ import "./style.css";
 import Sandbox from "./Sandbox";
 import ImageUpload from "./ImageUpload";
 import "./polish.css";
+import Navigation, { pageTitle } from "./Navigation";
+import { Documentation, ApiReference, Analytics } from "./Resources";
+import "./layout.css";
 const games = ["blackjack", "roulette", "slots"];
 const title = (s: string) => s[0].toUpperCase() + s.slice(1);
 const navigate = (path: string) => {
@@ -100,6 +104,11 @@ function App() {
     [config, setConfig] = useState<any>(null),
     [toast, setToast] = useState(""),
     [busy, setBusy] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => { try {return localStorage.getItem("house-sidebar-collapsed") === "true";} catch {return false;} });
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const toggleSidebar = () => setCollapsed(value => {try {localStorage.setItem("house-sidebar-collapsed", String(!value));} catch {} return !value;});
+  useEffect(() => { setMobileOpen(false); }, [route]);
+  useEffect(() => { const close = (event: KeyboardEvent) => {if(event.key === "Escape") setMobileOpen(false);}; window.addEventListener("keydown",close); return () => window.removeEventListener("keydown",close); }, []);
   const notify = (text: string) => setToast(text);
   useEffect(() => { window.scrollTo(0, 0); }, [route]);
   useEffect(() => {
@@ -160,41 +169,14 @@ function App() {
   };
   const props = { auth, notify, config, connect };
   return (
-    <>
-      <header>
-        <a className="brand" href="#/">
-          <House size={26} />
-          HOUSE
-        </a>
-        <nav>
-          <a className={route === "/" ? "active" : ""} href="#/">
-            Explore
-          </a>
-          <a className={route === "/live" ? "active" : ""} href="#/live">
-            Live
-          </a>
-          <a className={route === "/rewards" ? "active" : ""} href="#/rewards">
-            Rewards
-          </a>
-        </nav>
-        <div className="nav-actions">
-          <a className="button ghost launch-link" href="#/launch">
-            Launch coin <Plus size={15} />
-          </a>
-          <button
-            className="button primary"
-            onClick={auth ? disconnect : connect}
-            disabled={busy}
-          >
-            <Wallet size={15} />
-            {auth
-              ? short(auth.wallet)
-              : busy
-                ? "Connecting…"
-                : "Connect wallet"}
-          </button>
-        </div>
-      </header>
+    <div className={"house-app " + (collapsed ? "sidebar-collapsed" : "")}>
+      <Navigation route={route} collapsed={collapsed} mobileOpen={mobileOpen} operator={!!auth?.operator} onToggle={toggleSidebar} onClose={()=>setMobileOpen(false)} />
+      <div className="workspace">
+      <div className="workspace-topbar">
+        <button className="mobile-menu-button" aria-label="Open navigation" aria-controls="site-navigation" aria-expanded={mobileOpen} onClick={()=>setMobileOpen(true)}><Menu size={21}/></button>
+        <div className="workspace-breadcrumb"><span>HOUSE</span><span>/</span><strong>{pageTitle(route)}</strong></div>
+        <div className="workspace-actions"><a href="#/documentation" className="topbar-help">How it works</a><button className="button ghost wallet-control" onClick={auth?disconnect:connect} disabled={busy}><Wallet size={16}/>{auth?short(auth.wallet):busy?"Connecting…":"Connect wallet"}</button></div>
+      </div>
       {config?.offline ? (
         <div className="status-banner">
           Backend unavailable.{" "}
@@ -204,12 +186,12 @@ function App() {
         </div>
       ) : config && (!config.liveEnabled || config.paused) ? (
         <div className="status-banner">
-          <i className="dot" /> Real-money sessions are not open yet.
-          <a href="#/sandbox">Open the free practice table →</a>
+          Live-money sessions are unavailable.
+          <a href="#/sandbox">Try the practice table <ArrowRight size={13}/></a>
         </div>
       ) : null}
-      <main>
-        {route === "/sandbox" ? (
+      <main className="workspace-main">
+        {route === "/documentation" ? <Documentation /> : route === "/api" ? <ApiReference /> : route === "/analytics" ? <Analytics /> : route === "/sandbox" ? (
           <Sandbox />
         ) : route.startsWith("/room/") ? (
           <RoomPage id={route.split("/")[2]} {...props} />
@@ -223,17 +205,8 @@ function App() {
           <Explore liveOnly={route === "/live"} {...props} />
         )}
       </main>
-      <footer>
-        <span className="brand small">
-          <House size={18} />
-          HOUSE
-        </span>
-        <span>Community at the table.</span>
-        <a href="#/launch">
-          Launch a coin <ArrowUpRight size={13} />
-        </a>
-        {auth?.operator && <a href="#/operations">Operations</a>}
-      </footer>
+      <div className="workspace-footer"><span>HOUSE</span><span>Practice is open. Live integrations are in development.</span><a href="#/documentation">Documentation <ArrowUpRight size={12}/></a></div>
+      </div>
       {toast && (
         <div role="status" className="toast">
           {toast}
@@ -242,7 +215,7 @@ function App() {
           </button>
         </div>
       )}
-    </>
+    </div>
   );
 }
 type Shared = {
@@ -277,16 +250,16 @@ function Explore({ liveOnly, notify }: Shared & { liveOnly: boolean }) {
         ["opening", "funding"].includes(c.session_state)),
   );
   return (
-    <div className="page">
-      <section className="hero clean-hero">
-        <div><h1>The next round<br />is yours.</h1><p>Launch a coin. Vote on the play. Follow the session.</p><a href="#/launch" className="button primary">Launch a coin <ArrowRight size={18}/></a></div>
-        <div className="hero-art" aria-hidden="true"><div className="roulette-art"><span>HOUSE</span></div><div className="paper-card card-one"><b>A<small>♠</small></b><span>♠</span></div><div className="paper-card card-two"><b>J<small>♥</small></b><span>♥</span></div><div className="chip">H</div></div>
-      </section>
-      <section id="live-tables">
-        <a href="#/sandbox" className="sb-entry"><div><small>OPEN FOR TESTING · FREE CREDITS</small><h3>Try the HOUSE practice table</h3><p>Blackjack, roulette, slots and shared chat. No wallet needed.</p></div><span className="button primary">Enter test room <ArrowRight size={16} /></span></a>
+    <div className="page explore-page">
+      <div className="section-page-heading heading-with-action"><div><h1>{liveOnly ? "Live rooms" : "Explore"}</h1><p>Find a coin. Join its table.</p></div><a href="#/launch" className="button primary"><Plus size={16}/> Launch coin</a></div>
+      <div className="explore-feature-grid">
+        <section className="explore-feature"><div><h2>The next round<br/>is yours.</h2><p>A shared game. A community with a say.<br/>A room built around your coin.</p><a href="#/documentation" className="feature-link">See how HOUSE works <ArrowRight size={16}/></a></div><div className="feature-cards" aria-hidden="true"><div><b>A</b><span>♠</span></div><div><b>K</b><span>♣</span></div><i>H</i></div></section>
+        <a href="#/sandbox" className="practice-feature"><div className="practice-feature-top"><span className="practice-icon"><Play size={22} fill="currentColor"/></span><span className="plain-badge">Free to try</span></div><h3>Take a seat.</h3><p>Try blackjack, roulette and slots with free test credits.</p><span className="practice-feature-action">Open practice table <ArrowUpRight size={18}/></span></a>
+      </div>
+      <section id="live-tables" className="market-section">
         <div className="section-heading">
           <div>
-            <h2>{liveOnly ? "Live tables" : "Explore coins"}</h2>
+            <h2>{liveOnly ? "Live now" : "All coins"}</h2>
             <p>Browse launched coins and their sessions.</p>
           </div>
           <span className="muted">
@@ -384,11 +357,9 @@ function Explore({ liveOnly, notify }: Shared & { liveOnly: boolean }) {
                 ? "No tables match."
                 : "No launched coins yet."
             }
-            body="Coins appear here after a verified launch. You can try the practice table while live launching is unavailable."
+            body="Verified token launches will appear here. In the meantime, the practice table is open."
             action={
-              <a href="#/launch" className="button primary">
-                Launch a coin <Plus size={15} />
-              </a>
+              <a href="#/sandbox" className="button ghost">Try the practice table <ArrowRight size={15}/></a>
             }
           />
         )}
@@ -1421,6 +1392,7 @@ function Launch({ auth, connect, config, notify }: Shared) {
         <h1>Launch a coin</h1>
         <p>Add your artwork, choose the games, then review the launch.</p>
       </div>
+      <div className="launch-workspace"><section className="launch-editor">
       <div className="launch-steps">
         {["Your coin", "The table", "Review"].map((s, i) => (
           <button
@@ -1720,6 +1692,8 @@ function Launch({ auth, connect, config, notify }: Shared) {
           </>
         )}
       </div>
+      </section><aside className="launch-preview"><h3>Coin preview</h3><div className="preview-identity">{image?<img src={image} alt="Coin preview"/>:<span>{ticker.slice(0,1)||"H"}</span>}<div><strong>{name||"Your coin"}</strong><small>{ticker?"$"+ticker:"Ticker"}</small></div></div><p>{description||"Your artwork and description will appear with the coin after launch."}</p><div className="preview-details"><span>Supported games</span><strong>{rules.games.map(title).join(", ")}</strong><span>Default game</span><strong>{title(rules.defaultGame)}</strong><span>Session schedule</span><strong>{rules.scheduleMinutes} minutes</strong></div><div className="preview-note"><ShieldCheck size={18}/><p>A public room opens only after a verified token launch.</p></div><a href="#/documentation" className="text-link">Read the launch guide <ArrowUpRight size={14}/></a></aside></div>
+
     </div>
   );
 }
