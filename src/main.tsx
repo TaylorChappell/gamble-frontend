@@ -1418,11 +1418,7 @@ function Launch({ auth, connect, config, notify }: Shared) {
     <div className="page launch-page">
       <div className="page-heading">
         <div className="eyebrow">BUILD YOUR HOUSE</div>
-        <h1>
-          Launch a coin for
-          <br />
-          <em>your community.</em>
-        </h1>
+        <h1>Launch a coin</h1>
         <p>Add your artwork, choose the games, then review the launch.</p>
       </div>
       <div className="launch-steps">
