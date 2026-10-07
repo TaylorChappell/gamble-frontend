@@ -43,6 +43,9 @@ const Stream = React.lazy(() =>
   import("./Stream").then((m) => ({ default: m.Stream })),
 );
 import "./style.css";
+import Sandbox from "./Sandbox";
+import ImageUpload from "./ImageUpload";
+import "./polish.css";
 const games = ["blackjack", "roulette", "slots"];
 const title = (s: string) => s[0].toUpperCase() + s.slice(1);
 const navigate = (path: string) => {
@@ -68,7 +71,7 @@ function Tag({
 }) {
   return (
     <span className={"tag " + (live ? "on" : "")}>
-      {live && <i className="dot" />}
+      
       {children}
     </span>
   );
@@ -161,14 +164,13 @@ function App() {
         <a className="brand" href="#/">
           <House size={26} />
           HOUSE
-          <i />
         </a>
         <nav>
           <a className={route === "/" ? "active" : ""} href="#/">
             Explore
           </a>
           <a className={route === "/live" ? "active" : ""} href="#/live">
-            Live <i className="dot" />
+            Live
           </a>
           <a className={route === "/rewards" ? "active" : ""} href="#/rewards">
             Rewards
@@ -201,12 +203,14 @@ function App() {
         </div>
       ) : config && (!config.liveEnabled || config.paused) ? (
         <div className="status-banner">
-          <i className="dot" /> Live sessions are not open yet. Browse rooms and
-          prepare your coin.
+          <i className="dot" /> Real-money sessions are not open yet.
+          <a href="#/sandbox">Open the free practice table →</a>
         </div>
       ) : null}
       <main>
-        {route.startsWith("/room/") ? (
+        {route === "/sandbox" ? (
+          <Sandbox />
+        ) : route.startsWith("/room/") ? (
           <RoomPage id={route.split("/")[2]} {...props} />
         ) : route === "/launch" ? (
           <Launch {...props} />
@@ -273,70 +277,16 @@ function Explore({ liveOnly, notify }: Shared & { liveOnly: boolean }) {
   );
   return (
     <div className="page">
-      <section className="hero">
-        <div>
-          <div className="eyebrow">
-            <i className="dot" />
-            THE COMMUNITY HAS A SEAT
-          </div>
-          <h1>
-            The table
-            <br />
-            is <em>yours.</em>
-          </h1>
-          <p>
-            Creator fees bring the bankroll.
-            <br />
-            Holders bring the decisions.
-          </p>
-          <div className="hero-actions">
-            <button
-              onClick={() =>
-                document
-                  .getElementById("live-tables")
-                  ?.scrollIntoView({ behavior: "smooth" })
-              }
-              className="button primary"
-            >
-              Find your table <ArrowRight size={16} />
-            </button>
-            <a href="#/launch" className="text-link">
-              Launch a coin <ArrowUpRight size={15} />
-            </a>
-          </div>
-          <div className="hero-note">
-            <ShieldCheck size={15} />
-            100% of settled cash-out goes to eligible holders, after disclosed
-            costs.
-          </div>
-        </div>
-        <div className="hero-art" aria-hidden="true">
-          <div className="felt-ring" />
-          <div className="art-caption">YOUR COIN. YOUR CALL.</div>
-          <div className="paper-card card-one">
-            <b>
-              A<small>♠</small>
-            </b>
-            <span>♠</span>
-          </div>
-          <div className="paper-card card-two">
-            <b>
-              K<small>♣</small>
-            </b>
-            <span>♣</span>
-          </div>
-          <div className="chip">H</div>
-          <div className="art-label">
-            <i className="dot" />
-            Everyone watches. Holders decide.
-          </div>
-        </div>
+      <section className="hero clean-hero">
+        <div><h1>The next round<br />is yours.</h1><p>Launch a coin. Vote on the play. Follow the session.</p><a href="#/launch" className="button primary">Launch a coin <ArrowRight size={18}/></a></div>
+        <div className="hero-art" aria-hidden="true"><div className="roulette-art"><span>HOUSE</span></div><div className="paper-card card-one"><b>A<small>♠</small></b><span>♠</span></div><div className="paper-card card-two"><b>J<small>♥</small></b><span>♥</span></div><div className="chip">H</div></div>
       </section>
       <section id="live-tables">
+        <a href="#/sandbox" className="sb-entry"><div><small>OPEN FOR TESTING · FREE CREDITS</small><h3>Try the HOUSE practice table</h3><p>Blackjack, roulette, slots and shared chat. No wallet needed.</p></div><span className="button primary">Enter test room <ArrowRight size={16} /></span></a>
         <div className="section-heading">
           <div>
-            <h2>{liveOnly ? "Live tables" : "Find your house"}</h2>
-            <p>Watch the game. Join the conversation. Make the call.</p>
+            <h2>{liveOnly ? "Live tables" : "Explore coins"}</h2>
+            <p>Browse launched coins and their sessions.</p>
           </div>
           <span className="muted">
             {coins.length} {coins.length === 1 ? "room" : "rooms"}
@@ -395,29 +345,7 @@ function Explore({ liveOnly, notify }: Shared & { liveOnly: boolean }) {
         ) : visible.length ? (
           <div className="coin-grid">
             {visible.map((c) => (
-              <a className="coin-card" href={"#/room/" + c.id} key={c.id}>
-                <div
-                  className={"card-scene " + (c.game || c.rules.defaultGame)}
-                >
-                  <Tag
-                    live={["live", "voting"].includes(c.session_state || "")}
-                  >
-                    {c.session_state || c.status}
-                  </Tag>
-                  <span className="game-label">
-                    {title(c.game || c.rules.defaultGame)}
-                  </span>
-                  <span className="game-symbol">
-                    {c.rules.defaultGame === "blackjack"
-                      ? "♠"
-                      : c.rules.defaultGame === "roulette"
-                        ? "◎"
-                        : "777"}
-                  </span>
-                  <span className="watch">
-                    Open table <ArrowUpRight size={15} />
-                  </span>
-                </div>
+              <a className="coin-card compact-coin" href={"#/room/" + c.id} key={c.id}>
                 <div className="card-body">
                   <div className="identity">
                     <Logo coin={c} />
@@ -453,30 +381,18 @@ function Explore({ liveOnly, notify }: Shared & { liveOnly: boolean }) {
             title={
               search || filter !== "all"
                 ? "No tables match."
-                : "The first house starts with you."
+                : "No launched coins yet."
             }
-            body="Create a coin room and set its community rules. Live play begins after the funding and provider connections are verified."
+            body="Coins appear here after a verified launch. You can try the practice table while live launching is unavailable."
             action={
               <a href="#/launch" className="button primary">
-                Create your house <Plus size={15} />
+                Launch a coin <Plus size={15} />
               </a>
             }
           />
         )}
       </section>
-      <div className="how">
-        <span>
-          <b>01</b>Creator fees fund the session
-        </span>
-        <ArrowRight size={14} />
-        <span>
-          <b>02</b>Holders influence the game
-        </span>
-        <ArrowRight size={14} />
-        <span>
-          <b>03</b>Banked cash-out goes to holders
-        </span>
-      </div>
+
     </div>
   );
 }
@@ -492,6 +408,7 @@ function RoomPage({
     [text, setText] = useState(""),
     [sending, setSending] = useState(false),
     [tab, setTab] = useState("Overview"),
+    [playerTab, setPlayerTab] = useState("Live game"),
     [chatOpen, setChatOpen] = useState(true),
     [connection, setConnection] = useState("connecting"),
     [weight, setWeight] = useState("0"),
@@ -683,6 +600,8 @@ function RoomPage({
       )}
       <div className={"room-grid " + (!chatOpen ? "no-chat" : "")}>
         <section className="player-panel">
+          <div className="tabs player-tabs">{["Live game", "Graph"].map(t=><button key={t} className={playerTab===t?"selected":""} onClick={()=>setPlayerTab(t)}>{t}</button>)}</div>
+          {playerTab === "Graph" ? <div className="stream"><div className="stream-empty"><h2>Price chart unavailable</h2><p>A verified market-data feed has not been connected.</p>{coin.mint && <a className="button ghost" href={"https://pump.fun/coin/"+coin.mint} target="_blank" rel="noreferrer">View token on Pump.fun</a>}</div></div> : <>
           <div className="player-top">
             <span>HOUSE / {coin.ticker}</span>
             <span>
@@ -721,6 +640,8 @@ function RoomPage({
             </span>
             <span>Votes follow server time · video may be delayed</span>
           </div>
+          </>}
+          {!active && <div className="debug-row"><a className="button ghost" href="#/sandbox">Debug: open test player without funds</a><small>Opens the shared rendered sandbox, not a casino feed.</small></div>}
           <div className="session-stats">
             <Stat
               label="Session balance"
@@ -825,7 +746,7 @@ function RoomPage({
       <div className="room-below">
         <section>
           <div className="tabs">
-            {["Overview", "Session history", "Rules"].map((t) => (
+            {["Overview", "Transactions", "Holders", "Session history", "Rules"].map((t) => (
               <button
                 className={tab === t ? "selected" : ""}
                 key={t}
@@ -843,7 +764,7 @@ function RoomPage({
           </div>
           {tab === "Overview" ? (
             <div className="overview">
-              <h3>A shared bankroll. A community call.</h3>
+              <h3>About {coin.name}</h3>
               <p>
                 {coin.description ||
                   "Creator fees fund this room. Eligible holders influence play and receive the full banked cash-out after actual costs."}
@@ -867,6 +788,8 @@ function RoomPage({
                 <Tag>Token not launched</Tag>
               )}
             </div>
+          ) : tab === "Transactions" || tab === "Holders" ? (
+            <div className="overview"><h3>{tab}</h3><p>{tab === "Transactions" ? "On-chain transaction indexing is not connected yet." : "Live token-holder indexing is not connected yet. Session eligibility is not a live holder list."}</p>{coin.mint && <a className="button ghost" href={"https://solscan.io/token/"+coin.mint} target="_blank" rel="noreferrer">View token explorer <ExternalLink size={14}/></a>}</div>
           ) : tab === "Rules" ? (
             <div className="overview">
               <p>
@@ -1448,15 +1371,19 @@ function Launch({ auth, connect, config, notify }: Shared) {
   async function save() {
     setBusy(true);
     try {
+      if (!config?.liveEnabled || config?.missing?.length) throw Error("Token launching is not connected yet. No coin or room has been created.");
+      let imageUrl = image;
+      if (image.startsWith("data:")) { const uploaded = await api("/v1/images", {image}); imageUrl = BASE + uploaded.path; }
       const c = await api("/v1/coins", {
         name,
         ticker,
         description,
-        image: image || null,
+        image: imageUrl || null,
         rules,
       });
       setDraft(c.id);
-      notify("Coin room saved. No token or funds have moved.");
+      setPrepared(await api(`/v1/coins/${c.id}/launch/prepare`, {}));
+      notify("Review the launch transaction. Your room opens only after confirmation.");
     } catch (e) {
       notify((e as Error).message);
     } finally {
@@ -1493,11 +1420,11 @@ function Launch({ auth, connect, config, notify }: Shared) {
       <div className="page-heading">
         <div className="eyebrow">BUILD YOUR HOUSE</div>
         <h1>
-          A coin with
+          Launch a coin for
           <br />
-          <em>a seat at the table.</em>
+          <em>your community.</em>
         </h1>
-        <p>Keep it simple. Set the rules. Let the community play.</p>
+        <p>Add your artwork, choose the games, then review the launch.</p>
       </div>
       <div className="launch-steps">
         {["Your coin", "The table", "Review"].map((s, i) => (
@@ -1513,17 +1440,15 @@ function Launch({ auth, connect, config, notify }: Shared) {
         ))}
       </div>
       <div className="launch-form">
+        {(!config?.liveEnabled || !!config?.missing?.length) && <div className="launch-unavailable">Token launching is not connected yet. You can configure your coin here, but nothing will be created or signed.</div>}
         {draft ? (
           <>
-            <Tag>ROOM SAVED</Tag>
+            <Tag>LAUNCH PREPARATION</Tag>
             <h2>{name} is ready for the next step.</h2>
             <p>
-              Saving a room does not create a Pump.fun token. Launching requires
-              the configured, verified Pump.fun integration.
+              Your launch has not been confirmed. No public room exists until the token launch is verified.
             </p>
-            <a className="button ghost" href={"#/room/" + draft}>
-              Open room <ArrowUpRight size={15} />
-            </a>
+
             {prepared ? (
               <div className="review-note">
                 <p>{prepared.summary}</p>
@@ -1583,16 +1508,7 @@ function Launch({ auth, connect, config, notify }: Shared) {
                     />
                   </label>
                 </div>
-                <label>
-                  Logo URL
-                  <input
-                    value={image}
-                    type="url"
-                    placeholder="https://…"
-                    onChange={(e) => setImage(e.target.value)}
-                  />
-                  <small>Use a permanent HTTPS image URL.</small>
-                </label>
+                <ImageUpload value={image} onChange={setImage} notify={notify} />
                 <label>
                   Description
                   <textarea
@@ -1768,8 +1684,7 @@ function Launch({ auth, connect, config, notify }: Shared) {
                 <div className="review-note">
                   <ShieldCheck size={18} />
                   <p>
-                    Saving creates a room configuration. It does not sign a
-                    transaction, launch a token, or start gambling.
+                    A public room opens only after your token launch is confirmed. Review the transaction in your wallet before signing.
                   </p>
                 </div>
               </>
@@ -1796,10 +1711,10 @@ function Launch({ auth, connect, config, notify }: Shared) {
               ) : auth ? (
                 <button
                   className="button primary"
-                  disabled={busy || !name || ticker.length < 2}
+                  disabled={busy || !name || ticker.length < 2 || !config?.liveEnabled || !!config?.missing?.length}
                   onClick={save}
                 >
-                  {busy ? "Saving…" : "Save coin room"}
+                  {busy ? "Preparing…" : "Prepare coin launch"}
                 </button>
               ) : (
                 <button className="button primary" onClick={connect}>
