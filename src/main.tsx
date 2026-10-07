@@ -44,7 +44,7 @@ const Stream = React.lazy(() =>
   import("./Stream").then((m) => ({ default: m.Stream })),
 );
 import "./style.css";
-import Sandbox from "./Sandbox";
+import BrowserTest from "./BrowserTest";
 import ImageUpload from "./ImageUpload";
 import "./polish.css";
 import Navigation, { pageTitle } from "./Navigation";
@@ -187,12 +187,12 @@ function App() {
       ) : config && (!config.liveEnabled || config.paused) ? (
         <div className="status-banner">
           Live-money sessions are unavailable.
-          <a href="#/sandbox">Try the practice table <ArrowRight size={13}/></a>
+          <a href="#/browser-test">Open browser test <ArrowRight size={13}/></a>
         </div>
       ) : null}
       <main className="workspace-main">
-        {route === "/documentation" ? <Documentation /> : route === "/api" ? <ApiReference /> : route === "/analytics" ? <Analytics /> : route === "/sandbox" ? (
-          <Sandbox />
+        {route === "/documentation" ? <Documentation /> : route === "/api" ? <ApiReference /> : route === "/analytics" ? <Analytics /> : ["/browser-test","/sandbox"].includes(route) ? (
+          <BrowserTest auth={auth} connect={connect} />
         ) : route.startsWith("/room/") ? (
           <RoomPage id={route.split("/")[2]} {...props} />
         ) : route === "/launch" ? (
@@ -205,7 +205,7 @@ function App() {
           <Explore liveOnly={route === "/live"} {...props} />
         )}
       </main>
-      <div className="workspace-footer"><span>HOUSE</span><span>Practice is open. Live integrations are in development.</span><a href="#/documentation">Documentation <ArrowUpRight size={12}/></a></div>
+      <div className="workspace-footer"><span>HOUSE</span><span>Browser testing is read-only. Live integrations are in development.</span><a href="#/documentation">Documentation <ArrowUpRight size={12}/></a></div>
       </div>
       {toast && (
         <div role="status" className="toast">
@@ -254,7 +254,7 @@ function Explore({ liveOnly, notify }: Shared & { liveOnly: boolean }) {
       <div className="section-page-heading heading-with-action"><div><h1>{liveOnly ? "Live rooms" : "Explore"}</h1><p>Find a coin. Join its table.</p></div><a href="#/launch" className="button primary"><Plus size={16}/> Launch coin</a></div>
       <div className="explore-feature-grid">
         <section className="explore-feature"><div><h2>The next round<br/>is yours.</h2><p>A shared game. A community with a say.<br/>A room built around your coin.</p><a href="#/documentation" className="feature-link">See how HOUSE works <ArrowRight size={16}/></a></div><div className="feature-cards" aria-hidden="true"><div><b>A</b><span>♠</span></div><div><b>K</b><span>♣</span></div><i>H</i></div></section>
-        <a href="#/sandbox" className="practice-feature"><div className="practice-feature-top"><span className="practice-icon"><Play size={22} fill="currentColor"/></span><span className="plain-badge">Free to try</span></div><h3>Take a seat.</h3><p>Try blackjack, roulette and slots with free test credits.</p><span className="practice-feature-action">Open practice table <ArrowUpRight size={18}/></span></a>
+        <a href="#/browser-test" className="practice-feature"><div className="practice-feature-top"><span className="practice-icon"><Play size={22} fill="currentColor"/></span><span className="plain-badge">No funds needed</span></div><h3>Test the browser.</h3><p>Inspect the real casino page and test AI instructions.</p><span className="practice-feature-action">Open browser test <ArrowUpRight size={18}/></span></a>
       </div>
       <section id="live-tables" className="market-section">
         <div className="section-heading">
@@ -357,9 +357,9 @@ function Explore({ liveOnly, notify }: Shared & { liveOnly: boolean }) {
                 ? "No tables match."
                 : "No launched coins yet."
             }
-            body="Verified token launches will appear here. In the meantime, the practice table is open."
+            body="Verified token launches will appear here. Browser testing is available separately."
             action={
-              <a href="#/sandbox" className="button ghost">Try the practice table <ArrowRight size={15}/></a>
+              <a href="#/browser-test" className="button ghost">Open browser test <ArrowRight size={15}/></a>
             }
           />
         )}
@@ -611,7 +611,7 @@ function RoomPage({
             <span>Votes follow server time · video may be delayed</span>
           </div>
           </>}
-          {!active && <div className="debug-row"><a className="button ghost" href="#/sandbox">Debug: open test player without funds</a><small>Opens the shared rendered sandbox, not a casino feed.</small></div>}
+          {!active && <div className="debug-row"><a className="button ghost" href="#/browser-test">Debug: open real browser test</a><small>Inspects the real casino browser without placing bets.</small></div>}
           <div className="session-stats">
             <Stat
               label="Session balance"
