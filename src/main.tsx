@@ -101,6 +101,7 @@ function App() {
     [toast, setToast] = useState(""),
     [busy, setBusy] = useState(false);
   const notify = (text: string) => setToast(text);
+  useEffect(() => { window.scrollTo(0, 0); }, [route]);
   useEffect(() => {
     const change = () => setRoute(location.hash.slice(1) || "/");
     window.addEventListener("hashchange", change);
@@ -492,10 +493,8 @@ function RoomPage({
     return () => clearInterval(t);
   }, [auth?.wallet, coin?.session?.id, coin?.session?.ended_at, optIn, weight]);
   useEffect(() => {
-    chatBottom.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-    });
+    const panel = chatBottom.current?.parentElement;
+    if (panel) panel.scrollTop = panel.scrollHeight;
   }, [coin?.messages?.length]);
   async function send(e: React.FormEvent) {
     e.preventDefault();
